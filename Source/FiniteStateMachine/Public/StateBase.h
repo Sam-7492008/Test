@@ -21,7 +21,7 @@ public:
 
 	void Initialize(UStateMachineComponent* StateMachine, EFSMStateTypes State);
 	
-	virtual void Enter();
+	virtual void Enter(const FStateContext& StateContext);
 	virtual void Exit();
 	virtual void Update(const FStateContext& StateContext);
 	

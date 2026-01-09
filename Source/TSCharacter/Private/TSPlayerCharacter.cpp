@@ -13,6 +13,8 @@
 #include "GameFramework/Controller.h"
 
 #include "States/SubStates/IdleState.h"
+#include "States/SubStates/InAirState.h"
+#include "States/SubStates/JumpState.h"
 #include "States/SubStates/LocomotionState.h"
 #include "States/SubStates/SprintState.h"
 
@@ -69,6 +71,16 @@ void ATSPlayerCharacter::SprintOff(const FInputActionValue& Value)
 	bIsSprinting = false;
 }
 
+void ATSPlayerCharacter::StartJump(const FInputActionValue& Value)
+{
+	bIsTryingToJump = true;
+}
+
+void ATSPlayerCharacter::StopJump(const FInputActionValue& Value)
+{
+	bIsTryingToJump = false;
+}
+
 void ATSPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -92,9 +104,17 @@ void ATSPlayerCharacter::BeginPlay()
 	SprintState = NewObject<USprintState>(StateMachine);
 	SprintState->Initialize(StateMachine, EFSMStateTypes::Sprint);
 	
+	JumpState = NewObject<UJumpState>(StateMachine);
+	JumpState->Initialize(StateMachine, EFSMStateTypes::Jump);
+	
+	InAirState = NewObject<UInAirState>(StateMachine);
+	InAirState->Initialize(StateMachine, EFSMStateTypes::InAir);
+	
 	StateMachine->Initialize(LocomotionState);
 	StateMachine->RegisterState(LocomotionState);
 	StateMachine->RegisterState(SprintState);
+	StateMachine->RegisterState(JumpState);
+	StateMachine->RegisterState(InAirState);
 }
 
 void ATSPlayerCharacter::Tick(float DeltaTime)
@@ -113,6 +133,9 @@ void ATSPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		
 		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &ATSPlayerCharacter::SprintOn);
 		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &ATSPlayerCharacter::SprintOff);
+		
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ATSPlayerCharacter::StartJump);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ATSPlayerCharacter::StopJump);
 	}
 }
 
@@ -129,6 +152,11 @@ void ATSPlayerCharacter::StartMovement(float MoveSpeed)
 	AddMovementInput(RightDirection, MovementInput.X);
 }
 
+void ATSPlayerCharacter::PerformJump()
+{
+	Jump();
+}
+
 FVector2D ATSPlayerCharacter::GetMovementInput() const
 {
 	return MovementInput;
@@ -142,6 +170,11 @@ bool ATSPlayerCharacter::IsGrounded() const
 bool ATSPlayerCharacter::IsSprinting() const
 {
 	return bIsSprinting;
+}
+
+bool ATSPlayerCharacter::IsJumping() const
+{
+	return bIsTryingToJump;
 }
 
 UIdleState* ATSPlayerCharacter::GetIdleState() const

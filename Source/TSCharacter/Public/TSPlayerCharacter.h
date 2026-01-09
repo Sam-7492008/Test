@@ -7,6 +7,8 @@
 #include "StateMachineOwner.h"
 #include "TSPlayerCharacter.generated.h"
 
+class UJumpState;
+class UInAirState;
 class UCameraComponent;
 class USpringArmComponent;
 class UInputMappingContext;
@@ -46,6 +48,12 @@ private:
 	UPROPERTY()
 	USprintState* SprintState;
 	
+	UPROPERTY()
+	UJumpState* JumpState;
+	
+	UPROPERTY()
+	UInAirState* InAirState;
+	
 #pragma region Input
 	
 	UPROPERTY(EditDefaultsOnly, Category="Input", meta = (AllowPrivateAccess = "true"))
@@ -57,6 +65,9 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category="Input", meta = (AllowPrivateAccess = "true"))
 	UInputAction* SprintAction;
 	
+	UPROPERTY(EditDefaultsOnly, Category="Input", meta = (AllowPrivateAccess = "true"))
+	UInputAction* JumpAction;
+	
 #pragma endregion Input
 
 	void Move(const FInputActionValue& Value);
@@ -65,6 +76,10 @@ private:
 	
 	void SprintOn(const FInputActionValue& Value);
 	void SprintOff(const FInputActionValue& Value);
+	
+	void StartJump(const FInputActionValue& Value);
+	void StopJump(const FInputActionValue& Value);
+	bool bIsTryingToJump = false;
 	
 protected:
 	virtual void BeginPlay() override;
@@ -80,9 +95,11 @@ public:
 	virtual FVector2D GetMovementInput() const override;
 	
 	virtual void StartMovement(float MoveSpeed) override;
+	virtual void PerformJump() override;
 	
 	virtual bool IsGrounded() const override;
 	virtual bool IsSprinting() const override;
+	virtual bool IsJumping() const override;
 	
 	virtual UIdleState* GetIdleState() const override;
 	virtual ULocomotionState* GetLocomotionState() const override;

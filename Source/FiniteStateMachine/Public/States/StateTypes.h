@@ -7,5 +7,6 @@ enum class EFSMStateTypes : uint8
 	Idle,
 	Locomotion,
 	Sprint,
-	InAir
+	InAir,
+	Jump
 };

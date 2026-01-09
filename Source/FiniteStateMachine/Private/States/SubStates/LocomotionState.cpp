@@ -7,9 +7,9 @@
 #include "StateData.h"
 #include "StateMachineOwner.h"
 
-void ULocomotionState::Enter()
+void ULocomotionState::Enter(const FStateContext& StateContext)
 {
-	Super::Enter();
+	Super::Enter(StateContext);
 }
 
 void ULocomotionState::Update(const FStateContext& StateContext)

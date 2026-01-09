@@ -17,4 +17,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Movement")
 	float SprintSpeed = 750.f;
 	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Movement")
+	float InAirSpeed = 200.f;
+	
 };

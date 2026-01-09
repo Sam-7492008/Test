@@ -24,9 +24,11 @@ public:
 	virtual FVector2D GetMovementInput() const = 0;
 	
 	virtual void StartMovement(float MoveSpeed) {}
+	virtual void PerformJump() {}
 	
 	virtual bool IsGrounded() const = 0;
 	virtual bool IsSprinting() const = 0;
+	virtual bool IsJumping() const = 0;
 	
 	virtual UIdleState* GetIdleState() const = 0;
 	virtual ULocomotionState* GetLocomotionState() const = 0;

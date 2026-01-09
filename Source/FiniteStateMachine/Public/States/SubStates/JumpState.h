@@ -4,15 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "States/SuperState/GroundedState.h"
-#include "LocomotionState.generated.h"
+#include "JumpState.generated.h"
 
 UCLASS()
-class FINITESTATEMACHINE_API ULocomotionState : public UGroundedState
+class FINITESTATEMACHINE_API UJumpState : public UGroundedState
 {
 	GENERATED_BODY()
 	
 protected:
 	virtual void Enter(const FStateContext& StateContext) override;
-	virtual void Update(const FStateContext& StateContext) override;
 	
 };

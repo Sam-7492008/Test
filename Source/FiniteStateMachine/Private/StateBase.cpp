@@ -13,7 +13,7 @@ void UStateBase::Initialize(UStateMachineComponent* StateMachine, EFSMStateTypes
 	StateData = _StateMachine->StateData;
 }
 
-void UStateBase::Enter()
+void UStateBase::Enter(const FStateContext& StateContext)
 {
 	UE_LOG(LogTemp, Warning, TEXT("%s - Enter"), *GetStateName());
 }

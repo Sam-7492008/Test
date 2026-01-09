@@ -10,16 +10,23 @@ void UGroundedState::Update(const FStateContext& StateContext)
 {
 	if (!StateContext.Owner) return;
 	
-	if (!StateContext.Owner->IsSprinting() && StateContext.Owner->IsGrounded())
+	if (StateContext.Owner->IsGrounded())
 	{
-		_StateMachine->ChangeState(EFSMStateTypes::Locomotion);
-	}
-	else if (StateContext.Owner->IsSprinting() && StateContext.Owner->IsGrounded())
-	{
-		_StateMachine->ChangeState(EFSMStateTypes::Sprint);
+		if (StateContext.Owner->IsJumping())
+		{
+			_StateMachine->ChangeState(EFSMStateTypes::Jump);
+		}
+		else if (StateContext.Owner->IsSprinting())
+		{
+			_StateMachine->ChangeState(EFSMStateTypes::Sprint);
+		}
+		else
+		{
+			_StateMachine->ChangeState(EFSMStateTypes::Locomotion);
+		}
 	}
 	else
 	{
-		//TODO: Trasition to InAir State
+		_StateMachine->ChangeState(EFSMStateTypes::InAir);
 	}
 }

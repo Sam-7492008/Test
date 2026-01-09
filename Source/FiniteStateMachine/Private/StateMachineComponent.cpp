@@ -26,7 +26,7 @@ void UStateMachineComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 void UStateMachineComponent::Initialize(UStateBase* InitialState)
 {
 	_CurrentState = InitialState;
-	_CurrentState->Enter();
+	_CurrentState->Enter(Context);
 }
 
 void UStateMachineComponent::InitializeOwner(TScriptInterface<IStateMachineOwner> Owner)
@@ -48,6 +48,6 @@ void UStateMachineComponent::ChangeState(EFSMStateTypes NewState)
 	
 	_CurrentState->Exit();
 	_CurrentState = States[NewState];
-	_CurrentState->Enter();
+	_CurrentState->Enter(Context);
 }
 
