@@ -1,8 +1,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PlayerAnimState.h"
 #include "StateContext.generated.h"
 
+enum class EPlayerAnimState : uint8;
 class IStateMachineOwner;
 class UStateData;
 
@@ -15,6 +17,8 @@ struct FStateContext
 	
 	UPROPERTY()
 	UStateData* StateData = nullptr;
+	
+	EPlayerAnimState AnimState = EPlayerAnimState::Locomotion;
 	
 	float DeltaTime = 0.0f;
 	

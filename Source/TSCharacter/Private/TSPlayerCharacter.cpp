@@ -81,6 +81,16 @@ void ATSPlayerCharacter::StopJump(const FInputActionValue& Value)
 	bIsTryingToJump = false;
 }
 
+void ATSPlayerCharacter::StartAiming(const FInputActionValue& Value)
+{
+	bIsAiming = true;
+}
+
+void ATSPlayerCharacter::StopAiming(const FInputActionValue& Value)
+{
+	bIsAiming = false;
+}
+
 void ATSPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -117,9 +127,17 @@ void ATSPlayerCharacter::BeginPlay()
 	StateMachine->RegisterState(InAirState);
 }
 
+void ATSPlayerCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+	MyPlayerController = Cast<APlayerController>(NewController);
+}
+
 void ATSPlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
+	CurrentAnimState = StateMachine->GetContext().AnimState;
 }
 
 void ATSPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -136,10 +154,13 @@ void ATSPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ATSPlayerCharacter::StartJump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ATSPlayerCharacter::StopJump);
+		
+		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Started, this, &ATSPlayerCharacter::StartAiming);
+		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Completed, this, &ATSPlayerCharacter::StopAiming);
 	}
 }
 
-void ATSPlayerCharacter::StartMovement(float MoveSpeed)
+void ATSPlayerCharacter::HandleMovement(float MoveSpeed)
 {	
 	GetCharacterMovement()->MaxWalkSpeed = MoveSpeed;
 	const FRotator Rotation = GetController()->GetControlRotation();
@@ -155,6 +176,24 @@ void ATSPlayerCharacter::StartMovement(float MoveSpeed)
 void ATSPlayerCharacter::PerformJump()
 {
 	Jump();
+}
+
+void ATSPlayerCharacter::HandleAim()
+{
+	if (!bIsAiming) return;
+	
+	MyPlayerController->bShowMouseCursor = true;
+	
+	FHitResult Hit;
+	if (MyPlayerController->GetHitResultUnderCursor(ECC_Visibility, false, Hit))
+	{
+		FVector LookTarget = Hit.ImpactPoint;
+		FVector AimDirection = LookTarget - GetActorLocation();
+		AimDirection.Z = 0;
+		
+		FRotator Rotation = AimDirection.Rotation();
+		SetActorRotation(Rotation);
+	}
 }
 
 FVector2D ATSPlayerCharacter::GetMovementInput() const
@@ -177,18 +216,8 @@ bool ATSPlayerCharacter::IsJumping() const
 	return bIsTryingToJump;
 }
 
-UIdleState* ATSPlayerCharacter::GetIdleState() const
+bool ATSPlayerCharacter::IsAiming() const
 {
-	return IdleState;
-}
-
-ULocomotionState* ATSPlayerCharacter::GetLocomotionState() const
-{
-	return LocomotionState;
-}
-
-USprintState* ATSPlayerCharacter::GetSprintState() const
-{
-	return SprintState;
+	return bIsAiming;
 }
 

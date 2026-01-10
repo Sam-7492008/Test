@@ -17,5 +17,5 @@ void UInAirState::Update(const FStateContext& StateContext)
 {
 	Super::Update(StateContext);
 	
-	StateContext.Owner->StartMovement(_StateMachine->StateData->InAirSpeed);
+	StateContext.Owner->HandleMovement(_StateMachine->StateData->InAirSpeed);
 }

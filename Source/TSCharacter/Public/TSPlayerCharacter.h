@@ -7,6 +7,7 @@
 #include "StateMachineOwner.h"
 #include "TSPlayerCharacter.generated.h"
 
+enum class EPlayerAnimState : uint8;
 class UJumpState;
 class UInAirState;
 class UCameraComponent;
@@ -27,6 +28,9 @@ class TSCHARACTER_API ATSPlayerCharacter : public ATSBaseCharacter, public IStat
 
 private:
 	
+	UPROPERTY()
+	APlayerController* MyPlayerController;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
 	USpringArmComponent* CameraBoom;
 	
@@ -35,6 +39,9 @@ private:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Movement", meta = (AllowPrivateAccess = "true"))
 	bool bIsSprinting;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Animation", meta = (AllowPrivateAccess = "true"))
+	EPlayerAnimState CurrentAnimState;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="FSM", meta=(AllowPrivateAccess="true"))
 	UStateMachineComponent* StateMachine;
@@ -68,6 +75,9 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category="Input", meta = (AllowPrivateAccess = "true"))
 	UInputAction* JumpAction;
 	
+	UPROPERTY(EditDefaultsOnly, Category="Input", meta = (AllowPrivateAccess = "true"))
+	UInputAction* AimAction;
+	
 #pragma endregion Input
 
 	void Move(const FInputActionValue& Value);
@@ -81,8 +91,13 @@ private:
 	void StopJump(const FInputActionValue& Value);
 	bool bIsTryingToJump = false;
 	
+	void StartAiming(const FInputActionValue& Value);
+	void StopAiming(const FInputActionValue& Value);
+	bool bIsAiming = false;
+	
 protected:
 	virtual void BeginPlay() override;
+	virtual void PossessedBy(AController* NewController) override;
 
 public:
 	ATSPlayerCharacter();
@@ -94,14 +109,12 @@ public:
 	
 	virtual FVector2D GetMovementInput() const override;
 	
-	virtual void StartMovement(float MoveSpeed) override;
+	virtual void HandleMovement(float MoveSpeed) override;
 	virtual void PerformJump() override;
+	virtual void HandleAim() override;
 	
 	virtual bool IsGrounded() const override;
 	virtual bool IsSprinting() const override;
 	virtual bool IsJumping() const override;
-	
-	virtual UIdleState* GetIdleState() const override;
-	virtual ULocomotionState* GetLocomotionState() const override;
-	virtual USprintState* GetSprintState() const override;
+	virtual bool IsAiming() const override;
 };

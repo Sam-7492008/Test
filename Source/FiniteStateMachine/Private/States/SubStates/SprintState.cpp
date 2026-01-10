@@ -12,5 +12,5 @@ void USprintState::Update(const FStateContext& StateContext)
 	Super::Update(StateContext);
 	if (!StateContext.Owner) return;
 	
-	StateContext.Owner->StartMovement(StateData->SprintSpeed);
+	StateContext.Owner->HandleMovement(StateData->SprintSpeed);
 }

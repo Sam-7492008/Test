@@ -17,5 +17,6 @@ void ULocomotionState::Update(const FStateContext& StateContext)
 	Super::Update(StateContext);
 	if (!StateContext.Owner) return;
 	
-	StateContext.Owner->StartMovement(StateData->MoveSpeed);
+	StateContext.Owner->HandleMovement(StateData->MoveSpeed);
+	StateContext.Owner->HandleAim();
 }

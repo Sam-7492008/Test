@@ -23,15 +23,13 @@ public:
 	// State: Locomotion
 	virtual FVector2D GetMovementInput() const = 0;
 	
-	virtual void StartMovement(float MoveSpeed) {}
+	virtual void HandleMovement(float MoveSpeed) {}
 	virtual void PerformJump() {}
+	virtual void HandleAim() {}
 	
 	virtual bool IsGrounded() const = 0;
 	virtual bool IsSprinting() const = 0;
 	virtual bool IsJumping() const = 0;
-	
-	virtual UIdleState* GetIdleState() const = 0;
-	virtual ULocomotionState* GetLocomotionState() const = 0;
-	virtual USprintState* GetSprintState() const = 0;
+	virtual bool IsAiming() const = 0;
 	
 };

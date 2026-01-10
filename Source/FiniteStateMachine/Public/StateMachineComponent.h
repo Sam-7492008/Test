@@ -40,5 +40,6 @@ public:
 	void InitializeOwner(TScriptInterface<IStateMachineOwner> Owner);
 	void RegisterState(UStateBase* State);
 	void ChangeState(EFSMStateTypes NewState);
+	FStateContext& GetContext() {return Context;}
 	
 };

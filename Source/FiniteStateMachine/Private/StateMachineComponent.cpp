@@ -48,6 +48,26 @@ void UStateMachineComponent::ChangeState(EFSMStateTypes NewState)
 	
 	_CurrentState->Exit();
 	_CurrentState = States[NewState];
+	
+	switch (NewState)
+	{
+	case EFSMStateTypes::Locomotion:
+		Context.AnimState = EPlayerAnimState::Locomotion;
+		break;
+		
+	case EFSMStateTypes::Jump:
+		Context.AnimState = EPlayerAnimState::Jump;
+		break;
+		
+	case EFSMStateTypes::InAir:
+		Context.AnimState = EPlayerAnimState::InAir;
+		break;
+		
+	default:
+		Context.AnimState = EPlayerAnimState::Locomotion;
+		break;
+	}
+	
 	_CurrentState->Enter(Context);
 }
 

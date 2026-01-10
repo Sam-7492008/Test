@@ -3,15 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "States/SuperState/AbilityState.h"
-#include "InAirState.generated.h"
+#include "States/SuperState/GroundedState.h"
+#include "LandState.generated.h"
 
 UCLASS()
-class FINITESTATEMACHINE_API UInAirState : public UStateBase
+class FINITESTATEMACHINE_API ULandState : public UGroundedState
 {
 	GENERATED_BODY()
 	
 protected:
 	virtual void Enter(const FStateContext& StateContext) override;
-	virtual void Update(const FStateContext& StateContext) override;
 };
