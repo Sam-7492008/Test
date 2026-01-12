@@ -17,5 +17,12 @@ void UInAirState::Update(const FStateContext& StateContext)
 {
 	Super::Update(StateContext);
 	
-	StateContext.Owner->HandleMovement(_StateMachine->StateData->InAirSpeed);
+	if (StateContext.Owner->IsGrounded())
+	{
+		_StateMachine->ChangeState(EFSMStateTypes::Land);
+	}
+	else
+	{
+		StateContext.Owner->HandleMovement(_StateMachine->StateData->InAirSpeed);
+	}
 }

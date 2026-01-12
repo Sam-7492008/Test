@@ -14,11 +14,17 @@ void UGroundedState::Update(const FStateContext& StateContext)
 	{
 		if (StateContext.Owner->IsJumping())
 		{
+			StateContext.Owner->UseJumpInput();
 			_StateMachine->ChangeState(EFSMStateTypes::Jump);
 		}
 		else if (StateContext.Owner->IsSprinting())
 		{
 			_StateMachine->ChangeState(EFSMStateTypes::Sprint);
+		}
+		else if (StateContext.Owner->IsDashing())
+		{
+			StateContext.Owner->UseDashInput();
+			_StateMachine->ChangeState(EFSMStateTypes::Dash);
 		}
 		else
 		{

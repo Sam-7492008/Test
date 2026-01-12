@@ -7,10 +7,10 @@
 #include "States/StateTypes.h"
 #include "StateBase.generated.h"
 
-struct FStateContext;
 class UStateData;
 class IStateMachineOwner;
 class UStateMachineComponent;
+struct FStateContext;
 
 UCLASS(Abstract)
 class FINITESTATEMACHINE_API UStateBase : public UObject
@@ -25,12 +25,18 @@ public:
 	virtual void Exit();
 	virtual void Update(const FStateContext& StateContext);
 	
+	virtual void OnAnimationTrigger(const FStateContext& StateContext);
+	virtual void OnAnimationFinished(const FStateContext& StateContext);
+	
 	EFSMStateTypes GetStateType() const { return _StateType; }
 	
 	UFUNCTION(BlueprintCallable)
 	FString GetStateName();
 	
 protected:
+	
+	UPROPERTY()
+	float _StartTime;
 	
 	UPROPERTY()
 	UStateMachineComponent* _StateMachine;
@@ -40,7 +46,6 @@ protected:
 	
 	EFSMStateTypes _StateType;
 	
-	bool isExitingState = false;
-	bool isAnimationFinished = false;
+	bool bIsAnimationFinished = false;
 	
 };

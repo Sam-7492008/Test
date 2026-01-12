@@ -4,10 +4,23 @@
 #include "States/SubStates/LandState.h"
 
 #include "StateMachineComponent.h"
+#include "StateMachineOwner.h"
 
 void ULandState::Enter(const FStateContext& StateContext)
 {
 	Super::Enter(StateContext);
+}
+
+void ULandState::Update(const FStateContext& StateContext)
+{
+	Super::Update(StateContext);
 	
-	_StateMachine->ChangeState(EFSMStateTypes::Locomotion);
+	if (StateContext.Owner->GetMovementInput() != FVector2D::ZeroVector)
+	{
+		_StateMachine->ChangeState(EFSMStateTypes::Locomotion);
+	}
+	else if (bIsAnimationFinished)
+	{
+		_StateMachine->ChangeState(EFSMStateTypes::Locomotion);
+	}
 }

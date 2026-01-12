@@ -7,12 +7,30 @@
 #include "StateMachineComponent.h"
 #include "StateMachineOwner.h"
 
+void UAbilityState::Enter(const FStateContext& StateContext)
+{
+	Super::Enter(StateContext);
+	bIsAbilityDone = false;
+}
+
 void UAbilityState::Update(const FStateContext& StateContext)
 {
 	Super::Update(StateContext);
 	
-	if (StateContext.Owner->IsGrounded())
+	if (bIsAbilityDone)
 	{
-		_StateMachine->ChangeState(EFSMStateTypes::Locomotion);
+		if (StateContext.Owner->IsGrounded() && StateContext.Owner->GetCurrentVelocity().Y < 0.01f)
+		{
+			_StateMachine->ChangeState(EFSMStateTypes::Locomotion);
+		}
+		else if (!StateContext.Owner->IsGrounded() && StateContext.Owner->IsDashing())
+		{
+			StateContext.Owner->UseDashInput();
+			_StateMachine->ChangeState(EFSMStateTypes::Dash);
+		}
+		else
+		{
+			_StateMachine->ChangeState(EFSMStateTypes::InAir);
+		}
 	}
 }

@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "StateContext.h"
+#include "AnimNotify/FSMAnimEventType.h"
 #include "Components/ActorComponent.h"
 #include "States/StateTypes.h"
 #include "StateMachineComponent.generated.h"
@@ -41,5 +42,7 @@ public:
 	void RegisterState(UStateBase* State);
 	void ChangeState(EFSMStateTypes NewState);
 	FStateContext& GetContext() {return Context;}
+	
+	void HandleAnimEvent(EFSMAnimEventType EventType);
 	
 };

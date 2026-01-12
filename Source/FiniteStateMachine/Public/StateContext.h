@@ -21,5 +21,6 @@ struct FStateContext
 	EPlayerAnimState AnimState = EPlayerAnimState::Locomotion;
 	
 	float DeltaTime = 0.0f;
+	float TimeInSeconds = 0.0f;
 	
 };

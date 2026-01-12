@@ -13,4 +13,5 @@ class FINITESTATEMACHINE_API ULandState : public UGroundedState
 	
 protected:
 	virtual void Enter(const FStateContext& StateContext) override;
+	virtual void Update(const FStateContext& StateContext) override;
 };

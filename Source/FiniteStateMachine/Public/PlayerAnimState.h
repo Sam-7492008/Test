@@ -7,7 +7,7 @@ UENUM(BlueprintType)
 enum class EPlayerAnimState : uint8
 {
 	Locomotion UMETA(DisplayName = "Locomotion"),
-	Jump UMETA(DisplayName = "Jump"),
 	InAir UMETA(DisplayName = "In Air"),
 	Land UMETA(DisplayName = "Land"),
+	Dash UMETA(DisplayName = "Dash")
 };

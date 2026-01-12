@@ -16,11 +16,22 @@ void UStateBase::Initialize(UStateMachineComponent* StateMachine, EFSMStateTypes
 void UStateBase::Enter(const FStateContext& StateContext)
 {
 	UE_LOG(LogTemp, Warning, TEXT("%s - Enter"), *GetStateName());
+	bIsAnimationFinished = false;
+	_StartTime = 0;
 }
 
 void UStateBase::Update(const FStateContext& Context)
 {
-	
+	_StartTime += GetWorld()->GetTimeSeconds();
+}
+
+void UStateBase::OnAnimationTrigger(const FStateContext& StateContext)
+{
+}
+
+void UStateBase::OnAnimationFinished(const FStateContext& StateContext)
+{
+	bIsAnimationFinished = true;
 }
 
 FString UStateBase::GetStateName()

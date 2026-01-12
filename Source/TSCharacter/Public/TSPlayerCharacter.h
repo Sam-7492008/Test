@@ -7,19 +7,25 @@
 #include "StateMachineOwner.h"
 #include "TSPlayerCharacter.generated.h"
 
-enum class EPlayerAnimState : uint8;
-class UJumpState;
-class UInAirState;
+// Components
 class UCameraComponent;
 class USpringArmComponent;
+
+// Input
 class UInputMappingContext;
 class UInputAction;
 struct FInputActionValue;
 
+// Finite State Machine
+enum class EPlayerAnimState : uint8;
 class UStateMachineComponent;
 class UIdleState;
 class ULocomotionState;
 class USprintState;
+class ULandState;
+class UJumpState;
+class UInAirState;
+class UDashState;
 
 UCLASS(Blueprintable)
 class TSCHARACTER_API ATSPlayerCharacter : public ATSBaseCharacter, public IStateMachineOwner
@@ -61,6 +67,12 @@ private:
 	UPROPERTY()
 	UInAirState* InAirState;
 	
+	UPROPERTY()
+	ULandState* LandState;
+	
+	UPROPERTY()
+	UDashState* DashState;
+	
 #pragma region Input
 	
 	UPROPERTY(EditDefaultsOnly, Category="Input", meta = (AllowPrivateAccess = "true"))
@@ -77,6 +89,9 @@ private:
 	
 	UPROPERTY(EditDefaultsOnly, Category="Input", meta = (AllowPrivateAccess = "true"))
 	UInputAction* AimAction;
+	
+	UPROPERTY(EditDefaultsOnly, Category="Input", meta = (AllowPrivateAccess = "true"))
+	UInputAction* DashAction;
 	
 #pragma endregion Input
 
@@ -95,6 +110,10 @@ private:
 	void StopAiming(const FInputActionValue& Value);
 	bool bIsAiming = false;
 	
+	void StartDashing(const FInputActionValue& Value);
+	void StopDashing(const FInputActionValue& Value);
+	bool bIsDashing = false;
+	
 protected:
 	virtual void BeginPlay() override;
 	virtual void PossessedBy(AController* NewController) override;
@@ -107,14 +126,20 @@ public:
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 	
-	virtual FVector2D GetMovementInput() const override;
+	//Use Input Functions
+	virtual void UseJumpInput() override;
+	virtual void UseDashInput() override;
 	
+	virtual FVector2D GetMovementInput() const override;
+	virtual FVector GetCurrentVelocity() const override;
 	virtual void HandleMovement(float MoveSpeed) override;
 	virtual void PerformJump() override;
+	virtual void PerformDash(float DashStrength) override;
 	virtual void HandleAim() override;
 	
 	virtual bool IsGrounded() const override;
 	virtual bool IsSprinting() const override;
 	virtual bool IsJumping() const override;
 	virtual bool IsAiming() const override;
+	virtual bool IsDashing() const override;
 };

@@ -20,4 +20,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Movement")
 	float InAirSpeed = 200.f;
 	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Dash")
+	float DashStrength = 800.f;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Dash")
+	float DashDuration = 0.5f;
+	
 };

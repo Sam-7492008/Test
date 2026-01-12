@@ -4,12 +4,12 @@
 #include "States/SubStates/JumpState.h"
 
 #include "StateContext.h"
-#include "StateMachineComponent.h"
 #include "StateMachineOwner.h"
 
 void UJumpState::Enter(const FStateContext& StateContext)
 {
 	Super::Enter(StateContext);
+	
 	StateContext.Owner->PerformJump();
-	_StateMachine->ChangeState(EFSMStateTypes::InAir);
+	bIsAbilityDone = true;
 }

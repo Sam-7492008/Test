@@ -3,15 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "States/SuperState/GroundedState.h"
+#include "States/SuperState/AbilityState.h"
 #include "JumpState.generated.h"
 
 UCLASS()
-class FINITESTATEMACHINE_API UJumpState : public UGroundedState
+class FINITESTATEMACHINE_API UJumpState : public UAbilityState
 {
 	GENERATED_BODY()
 	
 protected:
 	virtual void Enter(const FStateContext& StateContext) override;
-	
 };

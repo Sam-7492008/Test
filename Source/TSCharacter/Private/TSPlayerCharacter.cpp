@@ -5,16 +5,19 @@
 
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "StateData.h"
 #include "StateMachineComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/Controller.h"
+#include "States/SubStates/DashState.h"
 
 #include "States/SubStates/IdleState.h"
 #include "States/SubStates/InAirState.h"
 #include "States/SubStates/JumpState.h"
+#include "States/SubStates/LandState.h"
 #include "States/SubStates/LocomotionState.h"
 #include "States/SubStates/SprintState.h"
 
@@ -50,6 +53,8 @@ ATSPlayerCharacter::ATSPlayerCharacter()
 	StateMachine = CreateDefaultSubobject<UStateMachineComponent>(TEXT("StateMachine"));
 	StateMachine->PrimaryComponentTick.bCanEverTick = true;
 }
+
+#pragma region Input Functions
 
 void ATSPlayerCharacter::Move(const FInputActionValue& Value)
 {
@@ -91,6 +96,18 @@ void ATSPlayerCharacter::StopAiming(const FInputActionValue& Value)
 	bIsAiming = false;
 }
 
+void ATSPlayerCharacter::StartDashing(const FInputActionValue& Value)
+{
+	bIsDashing = true;
+}
+
+void ATSPlayerCharacter::StopDashing(const FInputActionValue& Value)
+{
+	bIsDashing = false;
+}
+
+#pragma endregion Input Functions
+
 void ATSPlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -120,11 +137,19 @@ void ATSPlayerCharacter::BeginPlay()
 	InAirState = NewObject<UInAirState>(StateMachine);
 	InAirState->Initialize(StateMachine, EFSMStateTypes::InAir);
 	
+	LandState = NewObject<ULandState>(StateMachine);
+	LandState->Initialize(StateMachine, EFSMStateTypes::Land);
+	
+	DashState = NewObject<UDashState>(StateMachine);
+	DashState->Initialize(StateMachine, EFSMStateTypes::Dash);
+	
 	StateMachine->Initialize(LocomotionState);
 	StateMachine->RegisterState(LocomotionState);
 	StateMachine->RegisterState(SprintState);
 	StateMachine->RegisterState(JumpState);
 	StateMachine->RegisterState(InAirState);
+	StateMachine->RegisterState(LandState);
+	StateMachine->RegisterState(DashState);
 }
 
 void ATSPlayerCharacter::PossessedBy(AController* NewController)
@@ -157,6 +182,9 @@ void ATSPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		
 		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Started, this, &ATSPlayerCharacter::StartAiming);
 		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Completed, this, &ATSPlayerCharacter::StopAiming);
+		
+		EnhancedInputComponent->BindAction(DashAction, ETriggerEvent::Started, this, &ATSPlayerCharacter::StartDashing);
+		EnhancedInputComponent->BindAction(DashAction, ETriggerEvent::Completed, this, &ATSPlayerCharacter::StopDashing);
 	}
 }
 
@@ -178,9 +206,21 @@ void ATSPlayerCharacter::PerformJump()
 	Jump();
 }
 
+void ATSPlayerCharacter::PerformDash(float DashStrength)
+{
+	FVector DashDirection(MovementInput.Y, MovementInput.X, 0);
+	DashDirection.Normalize();
+	
+	GetCharacterMovement()->Velocity = DashDirection * DashStrength;
+}
+
 void ATSPlayerCharacter::HandleAim()
 {
-	if (!bIsAiming) return;
+	if (!bIsAiming)
+	{
+		MyPlayerController->bShowMouseCursor = false;
+		return;
+	}
 	
 	MyPlayerController->bShowMouseCursor = true;
 	
@@ -196,9 +236,24 @@ void ATSPlayerCharacter::HandleAim()
 	}
 }
 
+void ATSPlayerCharacter::UseJumpInput()
+{
+	bIsTryingToJump = false;
+}
+
+void ATSPlayerCharacter::UseDashInput()
+{
+	bIsDashing = false;
+}
+
 FVector2D ATSPlayerCharacter::GetMovementInput() const
 {
 	return MovementInput;
+}
+
+FVector ATSPlayerCharacter::GetCurrentVelocity() const
+{
+	return GetCharacterMovement()->Velocity;
 }
 
 bool ATSPlayerCharacter::IsGrounded() const
@@ -219,5 +274,14 @@ bool ATSPlayerCharacter::IsJumping() const
 bool ATSPlayerCharacter::IsAiming() const
 {
 	return bIsAiming;
+}
+
+bool ATSPlayerCharacter::IsDashing() const
+{
+	if (DashState->CanDash() && bIsDashing)
+	{
+		return true;
+	}
+	return false;
 }
 
