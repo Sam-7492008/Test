@@ -30,11 +30,14 @@ public:
 	virtual void PerformJump() {}
 	virtual void PerformDash(float DashStrength) {}
 	virtual void HandleAim() {}
+	virtual void ShowCursor(bool Value) {}
 	
 	virtual bool IsGrounded() const = 0;
 	virtual bool IsSprinting() const = 0;
 	virtual bool IsJumping() const = 0;
 	virtual bool IsAiming() const = 0;
 	virtual bool IsDashing() const = 0;
+	
+	virtual void SetDashDirection() {}
 	
 };

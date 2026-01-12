@@ -20,3 +20,12 @@ void ULocomotionState::Update(const FStateContext& StateContext)
 	StateContext.Owner->HandleMovement(StateData->MoveSpeed);
 	StateContext.Owner->HandleAim();
 }
+
+void ULocomotionState::Exit(const FStateContext& StateContext)
+{
+	Super::Exit(StateContext);
+	
+	StateContext.Owner->ShowCursor(false);
+}
+
+

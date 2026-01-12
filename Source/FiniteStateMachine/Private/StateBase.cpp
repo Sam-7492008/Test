@@ -42,7 +42,7 @@ FString UStateBase::GetStateName()
 	return EnumPtr->GetNameStringByValue(static_cast<int64>(_StateType));
 }
 
-void UStateBase::Exit()
+void UStateBase::Exit(const FStateContext& StateContext)
 {
 	
 }

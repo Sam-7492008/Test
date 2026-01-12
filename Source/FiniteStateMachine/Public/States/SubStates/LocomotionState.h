@@ -14,5 +14,5 @@ class FINITESTATEMACHINE_API ULocomotionState : public UGroundedState
 protected:
 	virtual void Enter(const FStateContext& StateContext) override;
 	virtual void Update(const FStateContext& StateContext) override;
-	
+	virtual void Exit(const FStateContext& StateContext) override;
 };

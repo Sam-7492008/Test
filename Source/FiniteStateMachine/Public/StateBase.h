@@ -22,7 +22,7 @@ public:
 	void Initialize(UStateMachineComponent* StateMachine, EFSMStateTypes State);
 	
 	virtual void Enter(const FStateContext& StateContext);
-	virtual void Exit();
+	virtual void Exit(const FStateContext& StateContext);
 	virtual void Update(const FStateContext& StateContext);
 	
 	virtual void OnAnimationTrigger(const FStateContext& StateContext);

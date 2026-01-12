@@ -46,7 +46,7 @@ void UStateMachineComponent::ChangeState(EFSMStateTypes NewState)
 	
 	if (!_CurrentState || States[NewState] == _CurrentState) return;
 	
-	_CurrentState->Exit();
+	_CurrentState->Exit(Context);
 	_CurrentState = States[NewState];
 	
 	switch (NewState)

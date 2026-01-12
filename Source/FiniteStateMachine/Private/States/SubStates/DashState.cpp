@@ -27,6 +27,6 @@ void UDashState::Update(const FStateContext& StateContext)
 
 bool UDashState::CanDash() const
 {
-	return GetWorld()->TimeSeconds >= lastDashTime + StateData->DashDuration;
+	return GetWorld()->TimeSeconds >= lastDashTime + StateData->DashCooldown;
 }
 

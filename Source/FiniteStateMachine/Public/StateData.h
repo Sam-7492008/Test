@@ -26,4 +26,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Dash")
 	float DashDuration = 0.5f;
 	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Dash")
+	float DashCooldown = 0.8f;
+	
 };

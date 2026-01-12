@@ -43,8 +43,13 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FollowCamera;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Movement", meta = (AllowPrivateAccess = "true"))
-	bool bIsSprinting;
+	UPROPERTY(BlueprintReadOnly, Category="Animation", meta = (AllowPrivateAccess = "true"))
+	float DashX = 0.f;
+	
+	UPROPERTY(BlueprintReadOnly, Category="Animation", meta = (AllowPrivateAccess = "true"))
+	float DashY = 0.f;
+	
+#pragma region State Machine Variables
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Animation", meta = (AllowPrivateAccess = "true"))
 	EPlayerAnimState CurrentAnimState;
@@ -73,6 +78,8 @@ private:
 	UPROPERTY()
 	UDashState* DashState;
 	
+#pragma endregion State Machine Variables
+	
 #pragma region Input
 	
 	UPROPERTY(EditDefaultsOnly, Category="Input", meta = (AllowPrivateAccess = "true"))
@@ -95,12 +102,15 @@ private:
 	
 #pragma endregion Input
 
+#pragma region Input Functions
+	
 	void Move(const FInputActionValue& Value);
 	void StopMove(const FInputActionValue& Value);
 	FVector2D MovementInput;
 	
 	void SprintOn(const FInputActionValue& Value);
 	void SprintOff(const FInputActionValue& Value);
+	bool bIsSprinting = false;
 	
 	void StartJump(const FInputActionValue& Value);
 	void StopJump(const FInputActionValue& Value);
@@ -113,6 +123,14 @@ private:
 	void StartDashing(const FInputActionValue& Value);
 	void StopDashing(const FInputActionValue& Value);
 	bool bIsDashing = false;
+	
+#pragma endregion Input Functions
+	
+#pragma region Other Functions
+	
+	void InitializeStatMachine();
+	
+#pragma endregion Other Functions
 	
 protected:
 	virtual void BeginPlay() override;
@@ -136,6 +154,7 @@ public:
 	virtual void PerformJump() override;
 	virtual void PerformDash(float DashStrength) override;
 	virtual void HandleAim() override;
+	virtual void ShowCursor(bool Value) override;
 	
 	virtual bool IsGrounded() const override;
 	virtual bool IsSprinting() const override;

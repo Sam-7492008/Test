@@ -5,7 +5,6 @@
 
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-#include "StateData.h"
 #include "StateMachineComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -120,36 +119,7 @@ void ATSPlayerCharacter::BeginPlay()
 		}
 	}
 	
-	StateMachine->InitializeOwner(TScriptInterface<IStateMachineOwner>(this));
-	
-	IdleState = NewObject<UIdleState>(StateMachine);
-	IdleState->Initialize(StateMachine, EFSMStateTypes::Idle);
-	
-	LocomotionState = NewObject<ULocomotionState>(StateMachine);
-	LocomotionState->Initialize(StateMachine, EFSMStateTypes::Locomotion);
-	
-	SprintState = NewObject<USprintState>(StateMachine);
-	SprintState->Initialize(StateMachine, EFSMStateTypes::Sprint);
-	
-	JumpState = NewObject<UJumpState>(StateMachine);
-	JumpState->Initialize(StateMachine, EFSMStateTypes::Jump);
-	
-	InAirState = NewObject<UInAirState>(StateMachine);
-	InAirState->Initialize(StateMachine, EFSMStateTypes::InAir);
-	
-	LandState = NewObject<ULandState>(StateMachine);
-	LandState->Initialize(StateMachine, EFSMStateTypes::Land);
-	
-	DashState = NewObject<UDashState>(StateMachine);
-	DashState->Initialize(StateMachine, EFSMStateTypes::Dash);
-	
-	StateMachine->Initialize(LocomotionState);
-	StateMachine->RegisterState(LocomotionState);
-	StateMachine->RegisterState(SprintState);
-	StateMachine->RegisterState(JumpState);
-	StateMachine->RegisterState(InAirState);
-	StateMachine->RegisterState(LandState);
-	StateMachine->RegisterState(DashState);
+	InitializeStatMachine();
 }
 
 void ATSPlayerCharacter::PossessedBy(AController* NewController)
@@ -188,6 +158,40 @@ void ATSPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 	}
 }
 
+void ATSPlayerCharacter::InitializeStatMachine()
+{
+	StateMachine->InitializeOwner(TScriptInterface<IStateMachineOwner>(this));
+	
+	IdleState = NewObject<UIdleState>(StateMachine);
+	IdleState->Initialize(StateMachine, EFSMStateTypes::Idle);
+	
+	LocomotionState = NewObject<ULocomotionState>(StateMachine);
+	LocomotionState->Initialize(StateMachine, EFSMStateTypes::Locomotion);
+	
+	SprintState = NewObject<USprintState>(StateMachine);
+	SprintState->Initialize(StateMachine, EFSMStateTypes::Sprint);
+	
+	JumpState = NewObject<UJumpState>(StateMachine);
+	JumpState->Initialize(StateMachine, EFSMStateTypes::Jump);
+	
+	InAirState = NewObject<UInAirState>(StateMachine);
+	InAirState->Initialize(StateMachine, EFSMStateTypes::InAir);
+	
+	LandState = NewObject<ULandState>(StateMachine);
+	LandState->Initialize(StateMachine, EFSMStateTypes::Land);
+	
+	DashState = NewObject<UDashState>(StateMachine);
+	DashState->Initialize(StateMachine, EFSMStateTypes::Dash);
+	
+	StateMachine->Initialize(LocomotionState);
+	StateMachine->RegisterState(LocomotionState);
+	StateMachine->RegisterState(SprintState);
+	StateMachine->RegisterState(JumpState);
+	StateMachine->RegisterState(InAirState);
+	StateMachine->RegisterState(LandState);
+	StateMachine->RegisterState(DashState);
+}
+
 void ATSPlayerCharacter::HandleMovement(float MoveSpeed)
 {	
 	GetCharacterMovement()->MaxWalkSpeed = MoveSpeed;
@@ -208,10 +212,26 @@ void ATSPlayerCharacter::PerformJump()
 
 void ATSPlayerCharacter::PerformDash(float DashStrength)
 {
-	FVector DashDirection(MovementInput.Y, MovementInput.X, 0);
+	FVector DashDirection;
+	
+	if (!MovementInput.IsZero())
+	{
+		DashDirection = FVector(MovementInput.Y, MovementInput.X, 0);
+	}
+	else
+	{
+		DashDirection = GetActorForwardVector();
+	}
+	
+	DashDirection.Z = 0;
 	DashDirection.Normalize();
 	
+	GetMovementComponent()->StopMovementImmediately();
 	GetCharacterMovement()->Velocity = DashDirection * DashStrength;
+	
+	const FVector LocalDirection = GetActorRotation().UnrotateVector(DashDirection);
+	DashX = LocalDirection.X;
+	DashY = LocalDirection.Y;
 }
 
 void ATSPlayerCharacter::HandleAim()
@@ -222,7 +242,7 @@ void ATSPlayerCharacter::HandleAim()
 		return;
 	}
 	
-	MyPlayerController->bShowMouseCursor = true;
+	ShowCursor(true);
 	
 	FHitResult Hit;
 	if (MyPlayerController->GetHitResultUnderCursor(ECC_Visibility, false, Hit))
@@ -234,6 +254,11 @@ void ATSPlayerCharacter::HandleAim()
 		FRotator Rotation = AimDirection.Rotation();
 		SetActorRotation(Rotation);
 	}
+}
+
+void ATSPlayerCharacter::ShowCursor(bool Value)
+{
+	MyPlayerController->bShowMouseCursor = Value;
 }
 
 void ATSPlayerCharacter::UseJumpInput()
