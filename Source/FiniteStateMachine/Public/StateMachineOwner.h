@@ -23,12 +23,16 @@ public:
 	//Use Input Functions
 	virtual void UseJumpInput() {}
 	virtual void UseDashInput() {}
+	virtual void UseFireInput() {}
 	
 	virtual FVector2D GetMovementInput() const = 0;
 	virtual FVector GetCurrentVelocity() const = 0;
 	virtual void HandleMovement(float MoveSpeed) {}
 	virtual void PerformJump() {}
 	virtual void PerformDash(float DashStrength) {}
+	virtual void StopDash() {}
+	virtual void PerformFire() {}
+	
 	virtual void HandleAim() {}
 	virtual void ShowCursor(bool Value) {}
 	
@@ -37,7 +41,6 @@ public:
 	virtual bool IsJumping() const = 0;
 	virtual bool IsAiming() const = 0;
 	virtual bool IsDashing() const = 0;
-	
-	virtual void SetDashDirection() {}
+	virtual bool IsFiring() const = 0;
 	
 };

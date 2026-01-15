@@ -23,11 +23,6 @@ void UAbilityState::Update(const FStateContext& StateContext)
 		{
 			_StateMachine->ChangeState(EFSMStateTypes::Locomotion);
 		}
-		else if (!StateContext.Owner->IsGrounded() && StateContext.Owner->IsDashing())
-		{
-			StateContext.Owner->UseDashInput();
-			_StateMachine->ChangeState(EFSMStateTypes::Dash);
-		}
 		else
 		{
 			_StateMachine->ChangeState(EFSMStateTypes::InAir);

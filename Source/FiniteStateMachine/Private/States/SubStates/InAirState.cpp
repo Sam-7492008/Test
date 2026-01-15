@@ -21,6 +21,11 @@ void UInAirState::Update(const FStateContext& StateContext)
 	{
 		_StateMachine->ChangeState(EFSMStateTypes::Land);
 	}
+	else if (!StateContext.Owner->IsGrounded() && StateContext.Owner->IsDashing())
+	{
+		StateContext.Owner->UseDashInput();
+		_StateMachine->ChangeState(EFSMStateTypes::Dash);
+	}
 	else
 	{
 		StateContext.Owner->HandleMovement(_StateMachine->StateData->InAirSpeed);

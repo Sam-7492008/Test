@@ -2,12 +2,13 @@
 
 
 #include "TSPlayerCharacter.h"
-
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "StateMachineComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/CombatComponent.h"
+#include "Components/PlayerStatsComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/Controller.h"
@@ -49,8 +50,13 @@ ATSPlayerCharacter::ATSPlayerCharacter()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false;
 	
+	PlayerStatsComponent = CreateDefaultSubobject<UPlayerStatsComponent>("PlayerStats");
+	
 	StateMachine = CreateDefaultSubobject<UStateMachineComponent>(TEXT("StateMachine"));
 	StateMachine->PrimaryComponentTick.bCanEverTick = true;
+	
+	CombatComponent = CreateDefaultSubobject<UCombatComponent>("CombatComponent");
+	
 }
 
 #pragma region Input Functions
@@ -105,6 +111,16 @@ void ATSPlayerCharacter::StopDashing(const FInputActionValue& Value)
 	bIsDashing = false;
 }
 
+void ATSPlayerCharacter::StartFire(const FInputActionValue& Value)
+{
+	bIsFiring = true;
+}
+
+void ATSPlayerCharacter::StopFire(const FInputActionValue& Value)
+{
+	bIsFiring = false;
+}
+
 #pragma endregion Input Functions
 
 void ATSPlayerCharacter::BeginPlay()
@@ -120,6 +136,8 @@ void ATSPlayerCharacter::BeginPlay()
 	}
 	
 	InitializeStatMachine();
+	PlayerStatsComponent->Initialize(PlayerStatData);
+	CombatComponent->Initialize(PlayerStatsComponent, GetMesh());
 }
 
 void ATSPlayerCharacter::PossessedBy(AController* NewController)
@@ -155,6 +173,10 @@ void ATSPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		
 		EnhancedInputComponent->BindAction(DashAction, ETriggerEvent::Started, this, &ATSPlayerCharacter::StartDashing);
 		EnhancedInputComponent->BindAction(DashAction, ETriggerEvent::Completed, this, &ATSPlayerCharacter::StopDashing);
+		
+		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &ATSPlayerCharacter::StartFire);
+		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Completed, this, &ATSPlayerCharacter::StopFire);
+		
 	}
 }
 
@@ -226,12 +248,27 @@ void ATSPlayerCharacter::PerformDash(float DashStrength)
 	DashDirection.Z = 0;
 	DashDirection.Normalize();
 	
-	GetMovementComponent()->StopMovementImmediately();
-	GetCharacterMovement()->Velocity = DashDirection * DashStrength;
+	FVector NewVelocity = DashDirection * DashStrength;
+	LaunchCharacter(NewVelocity, true, false);
 	
 	const FVector LocalDirection = GetActorRotation().UnrotateVector(DashDirection);
 	DashX = LocalDirection.X;
 	DashY = LocalDirection.Y;
+}
+
+void ATSPlayerCharacter::StopDash()
+{
+	
+}
+
+void ATSPlayerCharacter::PerformFire()
+{
+	bool isFired = CombatComponent->Fire(PrimaryFireMode);
+	
+	if (isFired)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Shot Fired!"));
+	}
 }
 
 void ATSPlayerCharacter::HandleAim()
@@ -248,11 +285,13 @@ void ATSPlayerCharacter::HandleAim()
 	if (MyPlayerController->GetHitResultUnderCursor(ECC_Visibility, false, Hit))
 	{
 		FVector LookTarget = Hit.ImpactPoint;
+		LookTarget.Z = GetActorLocation().Z;
 		FVector AimDirection = LookTarget - GetActorLocation();
 		AimDirection.Z = 0;
 		
 		FRotator Rotation = AimDirection.Rotation();
 		SetActorRotation(Rotation);
+		CombatComponent->SetAimTargetWorld(LookTarget);
 	}
 }
 
@@ -269,6 +308,11 @@ void ATSPlayerCharacter::UseJumpInput()
 void ATSPlayerCharacter::UseDashInput()
 {
 	bIsDashing = false;
+}
+
+void ATSPlayerCharacter::UseFireInput()
+{
+	bIsFiring = false;
 }
 
 FVector2D ATSPlayerCharacter::GetMovementInput() const
@@ -308,5 +352,10 @@ bool ATSPlayerCharacter::IsDashing() const
 		return true;
 	}
 	return false;
+}
+
+bool ATSPlayerCharacter::IsFiring() const
+{
+	return bIsFiring;
 }
 

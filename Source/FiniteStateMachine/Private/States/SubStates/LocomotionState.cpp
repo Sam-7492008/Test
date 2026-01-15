@@ -19,6 +19,12 @@ void ULocomotionState::Update(const FStateContext& StateContext)
 	
 	StateContext.Owner->HandleMovement(StateData->MoveSpeed);
 	StateContext.Owner->HandleAim();
+	
+	if (StateContext.Owner->IsFiring() && StateContext.Owner->IsAiming())
+	{
+		StateContext.Owner->UseFireInput();
+		StateContext.Owner->PerformFire();
+	}
 }
 
 void ULocomotionState::Exit(const FStateContext& StateContext)

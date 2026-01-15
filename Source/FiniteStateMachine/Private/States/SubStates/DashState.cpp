@@ -12,7 +12,14 @@ void UDashState::Enter(const FStateContext& StateContext)
 	DashStartTime = StateContext.TimeInSeconds;
 	lastDashTime = StateContext.TimeInSeconds;
 	
-	StateContext.Owner->PerformDash(StateData->DashStrength);
+	if (StateContext.Owner->IsGrounded())
+	{
+		StateContext.Owner->PerformDash(StateData->DashStrength);
+	}
+	else
+	{
+		StateContext.Owner->PerformDash(StateData->DashStrengthInAir);
+	}
 }
 
 void UDashState::Update(const FStateContext& StateContext)
@@ -23,6 +30,13 @@ void UDashState::Update(const FStateContext& StateContext)
 	{
 		bIsAbilityDone = true;
 	}
+}
+
+void UDashState::Exit(const FStateContext& StateContext)
+{
+	Super::Exit(StateContext);
+	
+	StateContext.Owner->StopDash();
 }
 
 bool UDashState::CanDash() const

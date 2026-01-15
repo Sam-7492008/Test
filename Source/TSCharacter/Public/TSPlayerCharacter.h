@@ -7,6 +7,11 @@
 #include "StateMachineOwner.h"
 #include "TSPlayerCharacter.generated.h"
 
+class UFireModeData;
+class UPlayerStatData;
+class UPlayerStatsComponent;
+struct FPlayerStats;
+class UCombatComponent;
 // Components
 class UCameraComponent;
 class USpringArmComponent;
@@ -42,6 +47,12 @@ private:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FollowCamera;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
+	UCombatComponent* CombatComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
+	UPlayerStatsComponent* PlayerStatsComponent;
 	
 	UPROPERTY(BlueprintReadOnly, Category="Animation", meta = (AllowPrivateAccess = "true"))
 	float DashX = 0.f;
@@ -100,6 +111,9 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category="Input", meta = (AllowPrivateAccess = "true"))
 	UInputAction* DashAction;
 	
+	UPROPERTY(EditDefaultsOnly, Category="Input", meta = (AllowPrivateAccess = "true"))
+	UInputAction* FireAction;
+	
 #pragma endregion Input
 
 #pragma region Input Functions
@@ -124,6 +138,10 @@ private:
 	void StopDashing(const FInputActionValue& Value);
 	bool bIsDashing = false;
 	
+	void StartFire(const FInputActionValue& Value);
+	void StopFire(const FInputActionValue& Value);
+	bool bIsFiring = false;
+	
 #pragma endregion Input Functions
 	
 #pragma region Other Functions
@@ -144,15 +162,28 @@ public:
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UPlayerStatData* PlayerStatData;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UFireModeData* PrimaryFireMode;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	UFireModeData* SecondaryFireMode;
+	
 	//Use Input Functions
 	virtual void UseJumpInput() override;
 	virtual void UseDashInput() override;
+	virtual void UseFireInput() override;
 	
 	virtual FVector2D GetMovementInput() const override;
 	virtual FVector GetCurrentVelocity() const override;
 	virtual void HandleMovement(float MoveSpeed) override;
 	virtual void PerformJump() override;
 	virtual void PerformDash(float DashStrength) override;
+	virtual void StopDash() override;
+	virtual void PerformFire() override;
+	
 	virtual void HandleAim() override;
 	virtual void ShowCursor(bool Value) override;
 	
@@ -161,4 +192,5 @@ public:
 	virtual bool IsJumping() const override;
 	virtual bool IsAiming() const override;
 	virtual bool IsDashing() const override;
+	virtual bool IsFiring() const override;
 };

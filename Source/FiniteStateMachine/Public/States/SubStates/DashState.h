@@ -15,6 +15,7 @@ class FINITESTATEMACHINE_API UDashState : public UAbilityState
 public:
 	virtual void Enter(const FStateContext& StateContext) override;
 	virtual void Update(const FStateContext& StateContext) override;
+	virtual void Exit(const FStateContext& StateContext) override;
 	
 	float lastDashTime = 0.0f;
 	bool CanDash() const;

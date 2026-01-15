@@ -21,7 +21,10 @@ public:
 	float InAirSpeed = 200.f;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Dash")
-	float DashStrength = 800.f;
+	float DashStrength = 12000.f;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Dash")
+	float DashStrengthInAir = 2000.f;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Dash")
 	float DashDuration = 0.5f;
