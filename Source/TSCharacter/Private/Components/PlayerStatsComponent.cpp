@@ -22,7 +22,9 @@ void UPlayerStatsComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 void UPlayerStatsComponent::Initialize(const UPlayerStatData* PlayerStatData)
 {
 	BaseData = PlayerStatData;
-	CachedStats = BaseData->PlayerBaseStats;
+	CachedPlayerStats = BaseData->PlayerBaseStats;
+	CachedPrimaryWeaponStats = BaseData->PrimaryWeaponStat;
+	CachedSecondaryWeaponStats = BaseData->SecondaryWeaponStat;
 }
 
 void UPlayerStatsComponent::ApplyUpgrade(const UUpgradeStatsData* Upgrade)
@@ -40,14 +42,24 @@ void UPlayerStatsComponent::ApplyUpgrade(const UUpgradeStatsData* Upgrade)
 	RecalculatePlayerStats();
 }
 
-const FPlayerStats& UPlayerStatsComponent::GetPlayerStat() const
+const FPlayerStats& UPlayerStatsComponent::GetPlayerStats() const
 {
-	return CachedStats;
+	return CachedPlayerStats;
+}
+
+const FWeaponStats& UPlayerStatsComponent::GetPrimaryWeaponStats() const
+{
+	return CachedPrimaryWeaponStats;
+}
+
+const FWeaponStats& UPlayerStatsComponent::GetSecondaryWeaponStats() const
+{
+	return CachedSecondaryWeaponStats;
 }
 
 void UPlayerStatsComponent::RecalculatePlayerStats()
 {
-	CachedStats = BaseData->PlayerBaseStats;
+	CachedPlayerStats = BaseData->PlayerBaseStats;
 	
 	Modifiers.Sort(
 		[](const FStatsModifier& A, const FStatsModifier& B)
@@ -61,10 +73,14 @@ void UPlayerStatsComponent::RecalculatePlayerStats()
 		
 		switch (Modifier.StatType)
 		{
-		case EPlayerStatsType::MoveSpeed: Stat = &CachedStats.MoveSpeed; break;
-		case EPlayerStatsType::DashSpeed: Stat = &CachedStats.DashStrength; break;
-		case EPlayerStatsType::Damage: Stat = &CachedStats.PrimaryAttackDamage; break;
-		case EPlayerStatsType::FireRate: Stat = &CachedStats.PrimaryFireRate; break;
+		case EPlayerStatsType::MoveSpeed: Stat = &CachedPlayerStats.MoveSpeed; break;
+		case EPlayerStatsType::DashSpeed: Stat = &CachedPlayerStats.DashStrength; break;
+		case EPlayerStatsType::PrimaryDamage: Stat = &CachedPrimaryWeaponStats.BaseDamage; break;
+		case EPlayerStatsType::PrimaryFireRate: Stat = &CachedPrimaryWeaponStats.BaseFireRate; break;
+		case EPlayerStatsType::PrimaryFireRange: Stat = &CachedPrimaryWeaponStats.BaseFireRange; break;
+		case EPlayerStatsType::SecondaryDamage: Stat = &CachedSecondaryWeaponStats.BaseDamage; break;
+		case EPlayerStatsType::SecondaryFireRate: Stat = &CachedSecondaryWeaponStats.BaseFireRate; break;
+		case EPlayerStatsType::SecondaryFireRange: Stat = &CachedSecondaryWeaponStats.BaseFireRange; break;
 		}
 		
 		if (!Stat) continue;

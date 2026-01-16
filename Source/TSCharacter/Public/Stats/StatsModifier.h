@@ -7,8 +7,12 @@ enum class EPlayerStatsType : uint8
 {
 	MoveSpeed,
 	DashSpeed,
-	Damage,
-	FireRate
+	PrimaryDamage,
+	PrimaryFireRate,
+	PrimaryFireRange,
+	SecondaryDamage,
+	SecondaryFireRate,
+	SecondaryFireRange
 };
 
 UENUM(BlueprintType)

@@ -112,7 +112,10 @@ private:
 	UInputAction* DashAction;
 	
 	UPROPERTY(EditDefaultsOnly, Category="Input", meta = (AllowPrivateAccess = "true"))
-	UInputAction* FireAction;
+	UInputAction* PrimaryFireAction;
+	
+	UPROPERTY(EditDefaultsOnly, Category="Input", meta = (AllowPrivateAccess = "true"))
+	UInputAction* SecondaryFireAction;
 	
 #pragma endregion Input
 
@@ -138,9 +141,13 @@ private:
 	void StopDashing(const FInputActionValue& Value);
 	bool bIsDashing = false;
 	
-	void StartFire(const FInputActionValue& Value);
-	void StopFire(const FInputActionValue& Value);
-	bool bIsFiring = false;
+	void StartPrimaryFire(const FInputActionValue& Value);
+	void StopPrimaryFire(const FInputActionValue& Value);
+	bool bIsFiringPrimary = false;
+	
+	void StartSecondaryFire(const FInputActionValue& Value);
+	void StopSecondaryFire(const FInputActionValue& Value);
+	bool bIsFiringSecondary = false;
 	
 #pragma endregion Input Functions
 	
@@ -182,7 +189,8 @@ public:
 	virtual void PerformJump() override;
 	virtual void PerformDash(float DashStrength) override;
 	virtual void StopDash() override;
-	virtual void PerformFire() override;
+	virtual void PerformPrimaryFire() override;
+	virtual void PerformSecondaryFire() override;
 	
 	virtual void HandleAim() override;
 	virtual void ShowCursor(bool Value) override;
@@ -192,5 +200,6 @@ public:
 	virtual bool IsJumping() const override;
 	virtual bool IsAiming() const override;
 	virtual bool IsDashing() const override;
-	virtual bool IsFiring() const override;
+	virtual bool IsFiringPrimary() const override;
+	virtual bool IsFiringSecondary() const override;
 };

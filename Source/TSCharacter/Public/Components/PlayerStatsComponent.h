@@ -23,7 +23,9 @@ public:
 	void Initialize(const UPlayerStatData* PlayerStatData);
 	void ApplyUpgrade(const UUpgradeStatsData* Upgrade);
 	
-	const FPlayerStats& GetPlayerStat() const;
+	const FPlayerStats& GetPlayerStats() const;
+	const FWeaponStats& GetPrimaryWeaponStats() const;
+	const FWeaponStats& GetSecondaryWeaponStats() const;
 	
 protected:
 	virtual void BeginPlay() override;
@@ -42,5 +44,7 @@ private:
 	UPROPERTY()
 	TMap<const UUpgradeStatsData*, int32> AppliedUpgrades;
 	
-	FPlayerStats CachedStats;
+	FPlayerStats CachedPlayerStats;
+	FWeaponStats CachedPrimaryWeaponStats;
+	FWeaponStats CachedSecondaryWeaponStats;
 };

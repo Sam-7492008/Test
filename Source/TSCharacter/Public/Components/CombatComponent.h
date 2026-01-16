@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Data/FirePointData.h"
 #include "Components/ActorComponent.h"
+#include "Data/FireModeData.h"
 #include "CombatComponent.generated.h"
 
 class UFireModeData;
@@ -43,10 +44,24 @@ private:
 	FVector PrimaryFirePoint = FVector::ZeroVector;
 	FVector SecondaryFirePoint = FVector::ZeroVector;	
 	
-private:
-	bool ExecuteHitscan(const UFireModeData* FireMode);
-	bool ExecuteProjectile(const UFireModeData* FireMode);
+	float PrimaryTimeSinceLastFire = 0.0f;
+	float SecondaryTimeSinceLastFire = 0.0f;
 	
+	float PrimaryFireInterval = 0.0f;
+	float SecondaryFireInterval = 0.0f;
+	
+	UPROPERTY(VisibleAnywhere)
+	const UFireModeData* CurrentFireMode = nullptr;
+	
+private:
+	bool ExecuteFire();
+	
+	void FireProjectile(FName SocketName, float Damage, float Range);
 	void FireHitscan(FName SocketName, float Damage, float Range);
+	
+	FVector ResolveFireDirection(const FVector& FirePointWorldPosition, float MinAimDistance) const;
+	
+	float& GetFireInterval(EFireType FireType);
+	float& GetTimeSinceLastFire(EFireType FireType);
 	
 };

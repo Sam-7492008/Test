@@ -31,7 +31,8 @@ public:
 	virtual void PerformJump() {}
 	virtual void PerformDash(float DashStrength) {}
 	virtual void StopDash() {}
-	virtual void PerformFire() {}
+	virtual void PerformPrimaryFire() {}
+	virtual void PerformSecondaryFire() {}
 	
 	virtual void HandleAim() {}
 	virtual void ShowCursor(bool Value) {}
@@ -41,6 +42,7 @@ public:
 	virtual bool IsJumping() const = 0;
 	virtual bool IsAiming() const = 0;
 	virtual bool IsDashing() const = 0;
-	virtual bool IsFiring() const = 0;
+	virtual bool IsFiringPrimary() const = 0;
+	virtual bool IsFiringSecondary() const = 0;
 	
 };

@@ -23,23 +23,21 @@ struct FPlayerStats
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	int NumberOfDashes = 1;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	float PrimaryAttackDamage = 20.0f;
+};
+
+USTRUCT(BlueprintType)
+struct FWeaponStats
+{
+	GENERATED_BODY()
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	float PrimaryFireRate = 1.15f;
+	float BaseDamage = 20.0f;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	float PrimaryFireRange = 2000.0f;
+	float BaseFireRate = 1.15f;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	float SecondaryAttackDamage = 40.0f;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	float SecondaryFireRate = 1.15f;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	float SecondaryFireRange = 2000.0f;
+	float BaseFireRange = 2000.0f;
 	
 };
 
@@ -51,6 +49,12 @@ class UPlayerStatData : public UDataAsset
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FPlayerStats PlayerBaseStats;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FWeaponStats PrimaryWeaponStat;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FWeaponStats SecondaryWeaponStat;
 	
 };
 

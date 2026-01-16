@@ -111,14 +111,24 @@ void ATSPlayerCharacter::StopDashing(const FInputActionValue& Value)
 	bIsDashing = false;
 }
 
-void ATSPlayerCharacter::StartFire(const FInputActionValue& Value)
+void ATSPlayerCharacter::StartPrimaryFire(const FInputActionValue& Value)
 {
-	bIsFiring = true;
+	bIsFiringPrimary = true;
 }
 
-void ATSPlayerCharacter::StopFire(const FInputActionValue& Value)
+void ATSPlayerCharacter::StopPrimaryFire(const FInputActionValue& Value)
 {
-	bIsFiring = false;
+	bIsFiringPrimary = false;
+}
+
+void ATSPlayerCharacter::StartSecondaryFire(const FInputActionValue& Value)
+{
+	bIsFiringSecondary = true;
+}
+
+void ATSPlayerCharacter::StopSecondaryFire(const FInputActionValue& Value)
+{
+	bIsFiringSecondary = false;
 }
 
 #pragma endregion Input Functions
@@ -174,8 +184,11 @@ void ATSPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 		EnhancedInputComponent->BindAction(DashAction, ETriggerEvent::Started, this, &ATSPlayerCharacter::StartDashing);
 		EnhancedInputComponent->BindAction(DashAction, ETriggerEvent::Completed, this, &ATSPlayerCharacter::StopDashing);
 		
-		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &ATSPlayerCharacter::StartFire);
-		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Completed, this, &ATSPlayerCharacter::StopFire);
+		EnhancedInputComponent->BindAction(PrimaryFireAction, ETriggerEvent::Started, this, &ATSPlayerCharacter::StartPrimaryFire);
+		EnhancedInputComponent->BindAction(PrimaryFireAction, ETriggerEvent::Completed, this, &ATSPlayerCharacter::StopPrimaryFire);
+		
+		EnhancedInputComponent->BindAction(SecondaryFireAction, ETriggerEvent::Started, this, &ATSPlayerCharacter::StartSecondaryFire);
+		EnhancedInputComponent->BindAction(SecondaryFireAction, ETriggerEvent::Completed, this, &ATSPlayerCharacter::StopSecondaryFire);
 		
 	}
 }
@@ -261,13 +274,23 @@ void ATSPlayerCharacter::StopDash()
 	
 }
 
-void ATSPlayerCharacter::PerformFire()
+void ATSPlayerCharacter::PerformPrimaryFire()
 {
 	bool isFired = CombatComponent->Fire(PrimaryFireMode);
 	
 	if (isFired)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Shot Fired!"));
+		UE_LOG(LogTemp, Warning, TEXT("Primary Shot Fired!"));
+	}
+}
+
+void ATSPlayerCharacter::PerformSecondaryFire()
+{
+	bool isFired = CombatComponent->Fire(SecondaryFireMode);
+	
+	if (isFired)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Secondary Shot Fired!"));
 	}
 }
 
@@ -312,7 +335,7 @@ void ATSPlayerCharacter::UseDashInput()
 
 void ATSPlayerCharacter::UseFireInput()
 {
-	bIsFiring = false;
+	bIsFiringPrimary = false;
 }
 
 FVector2D ATSPlayerCharacter::GetMovementInput() const
@@ -354,8 +377,13 @@ bool ATSPlayerCharacter::IsDashing() const
 	return false;
 }
 
-bool ATSPlayerCharacter::IsFiring() const
+bool ATSPlayerCharacter::IsFiringPrimary() const
 {
-	return bIsFiring;
+	return bIsFiringPrimary;
+}
+
+bool ATSPlayerCharacter::IsFiringSecondary() const
+{
+	return bIsFiringSecondary;
 }
 

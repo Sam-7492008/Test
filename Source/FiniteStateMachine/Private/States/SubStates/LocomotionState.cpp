@@ -20,10 +20,17 @@ void ULocomotionState::Update(const FStateContext& StateContext)
 	StateContext.Owner->HandleMovement(StateData->MoveSpeed);
 	StateContext.Owner->HandleAim();
 	
-	if (StateContext.Owner->IsFiring() && StateContext.Owner->IsAiming())
+	if (StateContext.Owner->IsAiming())
 	{
-		StateContext.Owner->UseFireInput();
-		StateContext.Owner->PerformFire();
+		if (StateContext.Owner->IsFiringPrimary())
+		{
+			StateContext.Owner->PerformPrimaryFire();
+		}
+		else if (StateContext.Owner->IsFiringSecondary())
+		{
+			StateContext.Owner->PerformSecondaryFire();
+		}
+		
 	}
 }
 

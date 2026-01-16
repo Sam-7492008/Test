@@ -2,6 +2,8 @@
 #include "Engine/DataAsset.h"
 #include "FireModeData.generated.h"
 
+class ABaseBullet;
+
 UENUM(BlueprintType)
 enum class EFireModeType : uint8
 {
@@ -30,4 +32,8 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	bool bFireFromAllFirePoints = true;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<ABaseBullet> ProjectileClass;
+	
 };

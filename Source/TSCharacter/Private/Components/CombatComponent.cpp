@@ -1,6 +1,7 @@
 #include "Components/CombatComponent.h"
 
 #include "PlayerStatData.h"
+#include "Bullet/BaseBullet.h"
 #include "Components/PlayerStatsComponent.h"
 #include "Data/FireModeData.h"
 
@@ -17,45 +18,9 @@ void UCombatComponent::BeginPlay()
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-}
-
-void UCombatComponent::FireHitscan(FName SocketName, float Damage, float Range)
-{
-	if (!PlayerSkeletalMeshComp || !PlayerSkeletalMeshComp->DoesSocketExist(SocketName))
-		return;
-
-	constexpr float MinAimDistance = 150.0f;
 	
-	FVector PlayerLoc = GetOwner()->GetActorLocation();
-	FVector ToTarget = AimTarget - PlayerLoc;
-	ToTarget.Z = 0.f;
-	
-	float Dist = ToTarget.Size();
-	
-	if (Dist < MinAimDistance)
-	{
-		ToTarget = ToTarget.GetSafeNormal() * MinAimDistance;
-	}
-	
-	FVector AdjustedAimTarget = PlayerLoc + ToTarget;
-	
-	FVector Start = PlayerSkeletalMeshComp->GetSocketLocation(SocketName);
-	FVector ShootDir = (AdjustedAimTarget - Start).GetSafeNormal();
-	FVector End   = Start + ShootDir * Range;
-
-	FHitResult Hit;
-	FCollisionQueryParams Params;
-	Params.AddIgnoredActor(GetOwner());
-	
-	bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_GameTraceChannel1, Params);
-	
-	FColor LineColor = bHit ? FColor::Green : FColor::Red;
-	
-	DrawDebugLine(GetWorld(), Start, bHit ? Hit.ImpactPoint: End, LineColor, false, 1.5f, 0, 1.5f);
-	if (bHit)
-	{
-		DrawDebugSphere(GetWorld(), Hit.ImpactPoint, 6.0f, 8, FColor::Red, false, 1.5f);
-	}
+	PrimaryTimeSinceLastFire += DeltaTime;
+	SecondaryTimeSinceLastFire += DeltaTime;
 }
 
 void UCombatComponent::Initialize(UPlayerStatsComponent* PlayerStatComponent, USkeletalMeshComponent* SkeletalMeshComponent)
@@ -77,54 +42,161 @@ bool UCombatComponent::Fire(const UFireModeData* FireMode)
 		return false;
 	}
 	
-	switch (FireMode->FireModeType)
+	CurrentFireMode = FireMode;
+	const EFireType FireType = CurrentFireMode->FireType;
+	
+	const FWeaponStats WeaponStats = 
+		(FireType == EFireType::Primary)
+		? _PlayerStatsComponent->GetPrimaryWeaponStats()
+		: _PlayerStatsComponent->GetSecondaryWeaponStats();
+	
+	const float FireRate = WeaponStats.BaseFireRate;
+	if (FireRate <= 0.0f)
 	{
-	case EFireModeType::Hitscan: return ExecuteHitscan(FireMode);
-	case EFireModeType::Projectile: return ExecuteProjectile(FireMode);
+		return false;
+	}
+	
+	float& TimeSinceLastFire = GetTimeSinceLastFire(FireType);
+	float& FireInterval = GetFireInterval(FireType);
+	
+	FireInterval = 1.0f / FireRate;
+	if (TimeSinceLastFire < FireInterval)
+	{
+		return false;
+	}
+	
+	if (ExecuteFire())
+	{
+		TimeSinceLastFire -= FireInterval;
+		TimeSinceLastFire = FMath::Clamp(TimeSinceLastFire,0.0f,FireInterval);
+		return true;
 	}
 	
 	return false;
 	
 }
 
-bool UCombatComponent::ExecuteHitscan(const UFireModeData* FireMode)
+bool UCombatComponent::ExecuteFire()
 {
 	if (FirePoints.Num() == 0) return false;
 	
-	const FPlayerStats& BaseStats = _PlayerStatsComponent->GetPlayerStat();
+	const FWeaponStats WeaponStats = 
+	(CurrentFireMode->FireType == EFireType::Primary)
+	? _PlayerStatsComponent->GetPrimaryWeaponStats()
+	: _PlayerStatsComponent->GetSecondaryWeaponStats();
 	float Damage;
 	float Range;
 	
-	if (FireMode->FireType == EFireType::Primary)
+	if (CurrentFireMode->FireType == EFireType::Primary)
 	{
-		Damage = BaseStats.PrimaryAttackDamage;
-		Range = BaseStats.PrimaryFireRange;
+		Damage = WeaponStats.BaseDamage;
+		Range = WeaponStats.BaseFireRange;
 	}
 	else
 	{
-		Damage = BaseStats.SecondaryAttackDamage;
-		Range = BaseStats.SecondaryFireRange;
+		Damage = WeaponStats.BaseDamage;
+		Range = WeaponStats.BaseFireRange;
 	}
 	
-	if (FireMode->bFireFromAllFirePoints)
+	if (CurrentFireMode->bFireFromAllFirePoints)
 	{
 		for (const FFirePointData& FirePoint : FirePoints)
 		{
-			FireHitscan(FirePoint.MuzzleSocketName, Damage, Range);
+			(CurrentFireMode->FireModeType == EFireModeType::Hitscan)
+			? FireHitscan(FirePoint.MuzzleSocketName, Damage, Range)
+			: FireProjectile(FirePoint.MuzzleSocketName, Damage, Range);
 		}
 	}
 	else
 	{
-		FireHitscan(FirePoints[0].MuzzleSocketName, Damage, Range);
+		(CurrentFireMode->FireModeType == EFireModeType::Hitscan)
+			? FireHitscan(FirePoints[0].MuzzleSocketName, Damage, Range)
+			: FireProjectile(FirePoints[0].MuzzleSocketName, Damage, Range);
 	}
 	
 	return true;
 }
 
-bool UCombatComponent::ExecuteProjectile(const UFireModeData* FireMode)
+void UCombatComponent::FireProjectile(FName SocketName, float Damage, float Range)
 {
-	return false;
+	if (!PlayerSkeletalMeshComp || !PlayerSkeletalMeshComp->DoesSocketExist(SocketName) || !CurrentFireMode || !CurrentFireMode->ProjectileClass)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("FireProjectile Error!"));
+		return;
+	}
+	
+	constexpr float MinAimDistance = 150.0f;
+	
+	UE_LOG(LogTemp, Warning, TEXT("FireProjectile called!"));
+	
+	FVector SpawnLocation = PlayerSkeletalMeshComp->GetSocketLocation(SocketName);
+	FVector ShootDirection = ResolveFireDirection(SpawnLocation, MinAimDistance);
+	
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = GetOwner();
+	SpawnParams.Instigator = GetOwner()->GetInstigator();
+	
+	ABaseBullet* Bullet = GetWorld()->SpawnActor<ABaseBullet>(
+		CurrentFireMode->ProjectileClass,
+		SpawnLocation,
+		ShootDirection.Rotation(),
+		SpawnParams);
+	
+	if (Bullet)
+	{
+		Bullet->InitializeBullet(Damage, Range, ShootDirection);
+	}
+	
 }
 
+void UCombatComponent::FireHitscan(FName SocketName, float Damage, float Range)
+{
+	if (!PlayerSkeletalMeshComp || !PlayerSkeletalMeshComp->DoesSocketExist(SocketName) || !CurrentFireMode)
+		return;
+
+	constexpr float MinAimDistance = 150.0f;
+	
+	FVector Start = PlayerSkeletalMeshComp->GetSocketLocation(SocketName);
+	FVector ShootDir = ResolveFireDirection(Start, MinAimDistance);
+	FVector End   = Start + ShootDir * Range;
+
+	FHitResult Hit;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(GetOwner());
+	
+	bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_GameTraceChannel1, Params);
+	
+	FColor LineColor = bHit ? FColor::Green : FColor::Red;
+	
+	DrawDebugLine(GetWorld(), Start, bHit ? Hit.ImpactPoint: End, LineColor, false, 1.5f, 0, 1.5f);
+	if (bHit)
+	{
+		DrawDebugSphere(GetWorld(), Hit.ImpactPoint, 6.0f, 8, FColor::Red, false, 1.5f);
+	}
+}
+
+FVector UCombatComponent::ResolveFireDirection(const FVector& FirePointWorldPosition, float MinAimDistance) const
+{
+	FVector ToTarget = AimTarget - FirePointWorldPosition;
+	ToTarget.Z = 0.f;
+
+	float Dist = ToTarget.Size();
+	if (Dist < MinAimDistance)
+	{
+		ToTarget = ToTarget.GetSafeNormal() * MinAimDistance;
+	}
+
+	return ToTarget.GetSafeNormal();
+}
+
+float& UCombatComponent::GetFireInterval(EFireType FireType)
+{
+	return (FireType == EFireType::Primary) ? PrimaryFireInterval : SecondaryFireInterval;
+}
+
+float& UCombatComponent::GetTimeSinceLastFire(EFireType FireType)
+{
+	return (FireType == EFireType::Primary) ? PrimaryTimeSinceLastFire : SecondaryTimeSinceLastFire;
+}
 
 
