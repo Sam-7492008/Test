@@ -16,6 +16,6 @@ public class TestTarget : TargetRules
 
 	private void RegisterModulesCreatedByRider()
 	{
-		ExtraModuleNames.AddRange(new string[] { "TSCharacter", "FiniteStateMachine" });
+		ExtraModuleNames.AddRange(new string[] { "TSCharacter", "FiniteStateMachine", "ObjectPool" });
 	}
 }

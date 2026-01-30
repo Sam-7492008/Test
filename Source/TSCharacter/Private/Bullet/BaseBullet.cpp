@@ -18,18 +18,33 @@ ABaseBullet::ABaseBullet()
 	Movement->MaxSpeed = 2000.0f;
 	Movement->bRotationFollowsVelocity = true;
 	Movement->ProjectileGravityScale = 0.0f;
+	Movement->StopMovementImmediately();
 }
 
-void ABaseBullet::InitializeBullet(float Damage, float MaxRange, FVector Direction)
+void ABaseBullet::OnActivated()
+{
+	Super::OnActivated();
+}
+
+void ABaseBullet::OnDeactivated()
+{
+	Super::OnDeactivated();
+}
+
+void ABaseBullet::ActivateBullet(float Damage, float MaxRange, const FVector& Direction, const FVector& StartLocation)
 {
 	_Damage = Damage;
 	_MaxRange = MaxRange;
 	
+	Movement->StopMovementImmediately();
+	Movement->SetUpdatedComponent(nullptr);
+	
+	SetActorLocation(StartLocation);
+	SetActorRotation(Direction.Rotation());
+	
+	Movement->SetUpdatedComponent(RootComponent);
+	
 	Movement->Velocity = Direction * Movement->InitialSpeed;
-}
-
-void ABaseBullet::BeginPlay()
-{
-	Super::BeginPlay();
+	Movement->Activate(true);
 }
 

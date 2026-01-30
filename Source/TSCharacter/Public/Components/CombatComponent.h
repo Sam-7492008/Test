@@ -6,6 +6,7 @@
 #include "Data/FireModeData.h"
 #include "CombatComponent.generated.h"
 
+class UObjectPoolComponent;
 class UFireModeData;
 class UPlayerStatsComponent;
 
@@ -17,7 +18,7 @@ class TSCHARACTER_API UCombatComponent : public UActorComponent
 public:
 	UCombatComponent();
 	
-	void Initialize(UPlayerStatsComponent* PlayerStatComponent, USkeletalMeshComponent* SkeletalMeshComponent);
+	void Initialize(UPlayerStatsComponent* PlayerStatComponent, USkeletalMeshComponent* SkeletalMeshComponent, UObjectPoolComponent* ObjectPoolComponent);
 	void SetAimTargetWorld(const FVector& WorldTarget);
 	
 	bool Fire(const UFireModeData* FireMode);
@@ -33,6 +34,9 @@ private:
 	
 	UPROPERTY()
 	UPlayerStatsComponent* _PlayerStatsComponent = nullptr;
+	
+	UPROPERTY()
+	UObjectPoolComponent* _ObjectPoolComponent = nullptr;
 
 	FVector AimTarget = FVector::ForwardVector;
 	
@@ -44,11 +48,8 @@ private:
 	FVector PrimaryFirePoint = FVector::ZeroVector;
 	FVector SecondaryFirePoint = FVector::ZeroVector;	
 	
-	float PrimaryTimeSinceLastFire = 0.0f;
-	float SecondaryTimeSinceLastFire = 0.0f;
-	
-	float PrimaryFireInterval = 0.0f;
-	float SecondaryFireInterval = 0.0f;
+	float NextPrimaryFireTime = 0.0f;
+	float NextSecondaryFireTime = 0.0f;
 	
 	UPROPERTY(VisibleAnywhere)
 	const UFireModeData* CurrentFireMode = nullptr;
@@ -61,7 +62,6 @@ private:
 	
 	FVector ResolveFireDirection(const FVector& FirePointWorldPosition, float MinAimDistance) const;
 	
-	float& GetFireInterval(EFireType FireType);
-	float& GetTimeSinceLastFire(EFireType FireType);
+	float& GetNextFireTime(EFireType FireType);
 	
 };

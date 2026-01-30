@@ -1,5 +1,6 @@
 #include "Components/CombatComponent.h"
 
+#include "ObjectPoolComponent.h"
 #include "PlayerStatData.h"
 #include "Bullet/BaseBullet.h"
 #include "Components/PlayerStatsComponent.h"
@@ -18,15 +19,13 @@ void UCombatComponent::BeginPlay()
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	
-	PrimaryTimeSinceLastFire += DeltaTime;
-	SecondaryTimeSinceLastFire += DeltaTime;
 }
 
-void UCombatComponent::Initialize(UPlayerStatsComponent* PlayerStatComponent, USkeletalMeshComponent* SkeletalMeshComponent)
+void UCombatComponent::Initialize(UPlayerStatsComponent* PlayerStatComponent, USkeletalMeshComponent* SkeletalMeshComponent, UObjectPoolComponent* ObjectPoolComponent)
 {
 	_PlayerStatsComponent = PlayerStatComponent;
 	PlayerSkeletalMeshComp = SkeletalMeshComponent;
+	_ObjectPoolComponent = ObjectPoolComponent;
 }
 
 void UCombatComponent::SetAimTargetWorld(const FVector& WorldTarget)
@@ -56,19 +55,18 @@ bool UCombatComponent::Fire(const UFireModeData* FireMode)
 		return false;
 	}
 	
-	float& TimeSinceLastFire = GetTimeSinceLastFire(FireType);
-	float& FireInterval = GetFireInterval(FireType);
+	const float FireInterval = 1.0f / FireRate;
+	const float CurrentTime = GetWorld()->GetTimeSeconds();
 	
-	FireInterval = 1.0f / FireRate;
-	if (TimeSinceLastFire < FireInterval)
+	float& NextFireTime = GetNextFireTime(FireType);
+	if (CurrentTime < NextFireTime)
 	{
 		return false;
 	}
 	
 	if (ExecuteFire())
 	{
-		TimeSinceLastFire -= FireInterval;
-		TimeSinceLastFire = FMath::Clamp(TimeSinceLastFire,0.0f,FireInterval);
+		NextFireTime = CurrentTime + FireInterval;
 		return true;
 	}
 	
@@ -136,15 +134,11 @@ void UCombatComponent::FireProjectile(FName SocketName, float Damage, float Rang
 	SpawnParams.Owner = GetOwner();
 	SpawnParams.Instigator = GetOwner()->GetInstigator();
 	
-	ABaseBullet* Bullet = GetWorld()->SpawnActor<ABaseBullet>(
-		CurrentFireMode->ProjectileClass,
-		SpawnLocation,
-		ShootDirection.Rotation(),
-		SpawnParams);
-	
+	APooledObject* PooledObject = _ObjectPoolComponent->SpawnPooledObject();
+	ABaseBullet* Bullet = Cast<ABaseBullet>(PooledObject);
 	if (Bullet)
 	{
-		Bullet->InitializeBullet(Damage, Range, ShootDirection);
+		Bullet->ActivateBullet(Damage, Range, ShootDirection, SpawnLocation);
 	}
 	
 }
@@ -189,14 +183,11 @@ FVector UCombatComponent::ResolveFireDirection(const FVector& FirePointWorldPosi
 	return ToTarget.GetSafeNormal();
 }
 
-float& UCombatComponent::GetFireInterval(EFireType FireType)
+float& UCombatComponent::GetNextFireTime(EFireType FireType)
 {
-	return (FireType == EFireType::Primary) ? PrimaryFireInterval : SecondaryFireInterval;
-}
-
-float& UCombatComponent::GetTimeSinceLastFire(EFireType FireType)
-{
-	return (FireType == EFireType::Primary) ? PrimaryTimeSinceLastFire : SecondaryTimeSinceLastFire;
+	return (FireType == EFireType::Primary)
+	? NextPrimaryFireTime
+	: NextSecondaryFireTime;
 }
 
 

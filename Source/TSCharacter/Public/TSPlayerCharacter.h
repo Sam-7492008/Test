@@ -7,14 +7,21 @@
 #include "StateMachineOwner.h"
 #include "TSPlayerCharacter.generated.h"
 
+//Data
 class UFireModeData;
 class UPlayerStatData;
-class UPlayerStatsComponent;
 struct FPlayerStats;
-class UCombatComponent;
+
 // Components
 class UCameraComponent;
 class USpringArmComponent;
+class UCombatComponent;
+class UObjectPoolComponent;
+class UPlayerStatsComponent;
+class UParticleSystemComponent;
+
+// Others
+class UParticleSystem;
 
 // Input
 class UInputMappingContext;
@@ -54,12 +61,18 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
 	UPlayerStatsComponent* PlayerStatsComponent;
 	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
+	UObjectPoolComponent* ObjectPoolComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
+	UParticleSystemComponent* DashParticleComponent;
+	
 	UPROPERTY(BlueprintReadOnly, Category="Animation", meta = (AllowPrivateAccess = "true"))
 	float DashX = 0.f;
 	
 	UPROPERTY(BlueprintReadOnly, Category="Animation", meta = (AllowPrivateAccess = "true"))
 	float DashY = 0.f;
-	
+
 #pragma region State Machine Variables
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Animation", meta = (AllowPrivateAccess = "true"))
@@ -140,6 +153,11 @@ private:
 	void StartDashing(const FInputActionValue& Value);
 	void StopDashing(const FInputActionValue& Value);
 	bool bIsDashing = false;
+	FVector DashStartLocation;
+	FVector DashTargetLocation;
+	FVector DashDirection;
+	float DashDistance = 600.0f;
+	float DashElapsed = 0.0f;
 	
 	void StartPrimaryFire(const FInputActionValue& Value);
 	void StopPrimaryFire(const FInputActionValue& Value);
@@ -168,6 +186,7 @@ public:
 	
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+	FORCEINLINE UObjectPoolComponent* GetObjectPool() const { return ObjectPoolComponent; }
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	UPlayerStatData* PlayerStatData;
@@ -186,9 +205,13 @@ public:
 	virtual FVector2D GetMovementInput() const override;
 	virtual FVector GetCurrentVelocity() const override;
 	virtual void HandleMovement(float MoveSpeed) override;
+	
 	virtual void PerformJump() override;
-	virtual void PerformDash(float DashStrength) override;
+	
+	virtual void StartDash(float _DashDistance) override;
+	virtual void TickDash(float DeltaTime, float DashDuration, UCurveFloat* DashCurve) override;
 	virtual void StopDash() override;
+	
 	virtual void PerformPrimaryFire() override;
 	virtual void PerformSecondaryFire() override;
 	

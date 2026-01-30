@@ -28,9 +28,13 @@ public:
 	virtual FVector2D GetMovementInput() const = 0;
 	virtual FVector GetCurrentVelocity() const = 0;
 	virtual void HandleMovement(float MoveSpeed) {}
+	
 	virtual void PerformJump() {}
-	virtual void PerformDash(float DashStrength) {}
+	
+	virtual void StartDash(float DashDistance) {}
+	virtual void TickDash(float DeltaTime, float DashDuration, UCurveFloat* DashCurve) {}
 	virtual void StopDash() {}
+	
 	virtual void PerformPrimaryFire() {}
 	virtual void PerformSecondaryFire() {}
 	

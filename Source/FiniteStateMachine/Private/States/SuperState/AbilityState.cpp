@@ -19,7 +19,7 @@ void UAbilityState::Update(const FStateContext& StateContext)
 	
 	if (bIsAbilityDone)
 	{
-		if (StateContext.Owner->IsGrounded() && StateContext.Owner->GetCurrentVelocity().Y < 0.01f)
+		if (StateContext.Owner->IsGrounded())
 		{
 			_StateMachine->ChangeState(EFSMStateTypes::Locomotion);
 		}

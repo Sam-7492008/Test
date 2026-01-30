@@ -11,23 +11,21 @@ void UDashState::Enter(const FStateContext& StateContext)
 	
 	DashStartTime = StateContext.TimeInSeconds;
 	lastDashTime = StateContext.TimeInSeconds;
-	
-	if (StateContext.Owner->IsGrounded())
-	{
-		StateContext.Owner->PerformDash(StateData->DashStrength);
-	}
-	else
-	{
-		StateContext.Owner->PerformDash(StateData->DashStrengthInAir);
-	}
+	StateContext.Owner->StartDash(StateData->DashDistance);
+	bIsAbilityDone = false;
 }
 
 void UDashState::Update(const FStateContext& StateContext)
 {
 	Super::Update(StateContext);
 	
-	if (StateContext.TimeInSeconds - DashStartTime >= StateData->DashDuration)
+	const float Elapsed = StateContext.TimeInSeconds - DashStartTime;
+	
+	StateContext.Owner->TickDash(StateContext.DeltaTime, StateData->DashDuration, StateData->DashCurve);
+	
+	if (Elapsed >= StateData->DashDuration)
 	{
+		StateContext.Owner->StopDash();
 		bIsAbilityDone = true;
 	}
 }
@@ -35,8 +33,6 @@ void UDashState::Update(const FStateContext& StateContext)
 void UDashState::Exit(const FStateContext& StateContext)
 {
 	Super::Exit(StateContext);
-	
-	StateContext.Owner->StopDash();
 }
 
 bool UDashState::CanDash() const

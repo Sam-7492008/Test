@@ -1,21 +1,23 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "PooledObject.h"
 #include "BaseBullet.generated.h"
 
 UCLASS()
-class TSCHARACTER_API ABaseBullet : public AActor
+class TSCHARACTER_API ABaseBullet : public APooledObject
 {
 	GENERATED_BODY()
 
 public:
 	ABaseBullet();
 	
-	void InitializeBullet(float Damage, float MaxRange, FVector Direction);
+	void ActivateBullet(float Damage, float MaxRange, const FVector& Direction, const FVector& StartLocation);
 
 protected:
-	virtual void BeginPlay() override;
+
+	virtual void OnActivated() override;
+	virtual void OnDeactivated() override;
 	
 	UPROPERTY(EditDefaultsOnly)
 	class UStaticMeshComponent* StaticMeshComp;

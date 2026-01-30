@@ -1,8 +1,8 @@
 ﻿using UnrealBuildTool;
 
-public class TSCharacter : ModuleRules
+public class ObjectPool : ModuleRules
 {
-    public TSCharacter(ReadOnlyTargetRules Target) : base(Target)
+    public ObjectPool(ReadOnlyTargetRules Target) : base(Target)
     {
         PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
@@ -10,7 +10,6 @@ public class TSCharacter : ModuleRules
             new string[]
             {
                 "Core",
-                "EnhancedInput"
             }
         );
 
@@ -19,8 +18,8 @@ public class TSCharacter : ModuleRules
             {
                 "CoreUObject",
                 "Engine",
-                "FiniteStateMachine",
-                "ObjectPool"
+                "Slate",
+                "SlateCore"
             }
         );
     }

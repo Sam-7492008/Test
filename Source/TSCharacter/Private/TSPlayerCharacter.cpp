@@ -4,14 +4,16 @@
 #include "TSPlayerCharacter.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "ObjectPoolComponent.h"
 #include "StateMachineComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/CombatComponent.h"
 #include "Components/PlayerStatsComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/Controller.h"
+#include "GameFramework/SpringArmComponent.h"
+#include "Particles/ParticleSystemComponent.h"
 #include "States/SubStates/DashState.h"
 
 #include "States/SubStates/IdleState.h"
@@ -56,6 +58,10 @@ ATSPlayerCharacter::ATSPlayerCharacter()
 	StateMachine->PrimaryComponentTick.bCanEverTick = true;
 	
 	CombatComponent = CreateDefaultSubobject<UCombatComponent>("CombatComponent");
+	
+	DashParticleComponent = CreateDefaultSubobject<UParticleSystemComponent>("ParticleSystem");
+	
+	ObjectPoolComponent = CreateDefaultSubobject<UObjectPoolComponent>("ObjectPoolComponent");
 	
 }
 
@@ -147,7 +153,8 @@ void ATSPlayerCharacter::BeginPlay()
 	
 	InitializeStatMachine();
 	PlayerStatsComponent->Initialize(PlayerStatData);
-	CombatComponent->Initialize(PlayerStatsComponent, GetMesh());
+	CombatComponent->Initialize(PlayerStatsComponent, GetMesh(), ObjectPoolComponent);
+	
 }
 
 void ATSPlayerCharacter::PossessedBy(AController* NewController)
@@ -245,33 +252,76 @@ void ATSPlayerCharacter::PerformJump()
 	Jump();
 }
 
-void ATSPlayerCharacter::PerformDash(float DashStrength)
+void ATSPlayerCharacter::StartDash(float _DashDistance)
 {
-	FVector DashDirection;
+	DashElapsed = 0.0f;
+	DashDistance = _DashDistance;
 	
-	if (!MovementInput.IsZero())
+	GetCharacterMovement()->StopMovementImmediately();
+	GetCharacterMovement()->SetMovementMode(MOVE_Flying);
+	GetCharacterMovement()->StopMovementImmediately();
+	GetCharacterMovement()->Velocity = FVector::ZeroVector;
+	
+	if (!MovementInput.IsNearlyZero())
 	{
-		DashDirection = FVector(MovementInput.Y, MovementInput.X, 0);
+		DashDirection = FVector(MovementInput.Y, MovementInput.X, 0.0f).GetSafeNormal();
 	}
 	else
 	{
-		DashDirection = GetActorForwardVector();
+		DashDirection = GetActorForwardVector().GetSafeNormal();
 	}
 	
-	DashDirection.Z = 0;
-	DashDirection.Normalize();
+	DashDirection.Z = 0.0f;
 	
-	FVector NewVelocity = DashDirection * DashStrength;
-	LaunchCharacter(NewVelocity, true, false);
+	DashStartLocation = GetActorLocation();
+	DashTargetLocation = DashStartLocation + DashDirection * DashDistance;
 	
-	const FVector LocalDirection = GetActorRotation().UnrotateVector(DashDirection);
-	DashX = LocalDirection.X;
-	DashY = LocalDirection.Y;
+	const FVector LocalDir = GetActorRotation().UnrotateVector(DashDirection);
+	DashX = LocalDir.X;
+	DashY = LocalDir.Y;
+	
+	SetActorLocation(DashStartLocation, true);
+	
+	if (DashParticleComponent)
+	{
+		DashParticleComponent->Activate(true);
+	}
+}
+
+void ATSPlayerCharacter::TickDash(float DeltaTime, float DashDuration, UCurveFloat* DashCurve)
+{
+	DashElapsed += DeltaTime;
+	float Alpha = FMath::Clamp(DashElapsed / DashDuration, 0.0f, 1.0f);
+    
+	// Apply curve if available, otherwise linear
+	if (DashCurve)
+	{
+		Alpha = DashCurve->GetFloatValue(Alpha);
+	}
+	
+	const FVector NewLocation = FMath::Lerp(DashStartLocation,DashTargetLocation, Alpha);
+	SetActorLocation(NewLocation, true);
+	GetCharacterMovement()->Velocity = FVector::ZeroVector;
+	
+	UE_LOG(LogTemp, Warning, TEXT("Alpha: %f | CurrentLoc: %s"), 
+		   Alpha, *GetActorLocation().ToString());
 }
 
 void ATSPlayerCharacter::StopDash()
 {
+	UE_LOG(LogTemp, Warning, TEXT("=== DASH STOP ==="));
+    
+	SetActorLocation(DashTargetLocation, true);
+	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+	GetCharacterMovement()->Velocity = FVector::ZeroVector;
+	GetCharacterMovement()->Velocity = DashDirection * 200.0f;
+    
+	if (DashParticleComponent)
+	{
+		DashParticleComponent->Deactivate();
+	}
 	
+	DashElapsed = 0.0f;
 }
 
 void ATSPlayerCharacter::PerformPrimaryFire()

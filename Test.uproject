@@ -17,10 +17,18 @@
 		{
 			"Name": "TSCharacter",
 			"Type": "Runtime",
-			"LoadingPhase": "Default"
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine"
+			]
 		},
 		{
 			"Name": "FiniteStateMachine",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "ObjectPool",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
 		}
